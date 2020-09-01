@@ -34,23 +34,18 @@ crime <- crime %>%
   mutate(occured_date = mdy_hm(occurred_d)) %>%
   mutate(year = as.factor(year(occured_date)))
 
-
+# use the extents in the data, but expand out a bit. Maybe someone can provide
+# the no-kidding bounding box that defines Barton Hills
 bh_bbox <- c(left = min(crime$longitude) * 1.00002,
              right = max(crime$longitude) * 0.99998,
              top = max(crime$latitude) * 1.0002,
              bottom = min(crime$latitude) * 0.9998)
 
+# get my favorite map-type
 map <- get_stamenmap(bbox = bh_bbox, zoom = 15,
                      maptype="toner-2011")
 
-ggmap(map)
-
-# Use the function to convert from crs 4326 to crs 3857:
-map <- ggmap_bbox(map)
-
-
 ggmap(map) +
-#  coord_sf(crs = st_crs(3857)) +
   geom_jitter(data = crime, aes(x=longitude, y=latitude), size=.2, color="blue") +
   facet_wrap(~year, ncol = 6) +
   theme(axis.text = element_blank(),
@@ -60,19 +55,18 @@ ggmap(map) +
 ggsave("bh-crime.png", dpi=300, width=4, height=4)
 
 # now bin per hex
-
-resolution <- 9 #( 5 = 8.5km hex edge, 252 km^2 hex area)
+h3_res <- 9 # seems about right for Barton Hills
 
 crime <- crime %>%
-  mutate(h3_index = geo_to_h3(c(.$latitude, .$longitude), resolution))
+  mutate(h3_index = geo_to_h3(c(.$latitude, .$longitude), h3_res))
 
 hexes <- crime %>%
   group_by(year,h3_index) %>%
   tally() %>%
   summarise(h3_index = h3_index,
-            n=n,
+            ct=n,
             sf_geom = h3_to_geo_boundary_sf(h3_index) %>% st_geometry() %>% st_sfc(crs = 4326)) %>%
-  mutate(q = as.factor(ntile(n, 5)))
+  mutate(q = as.factor(ntile(ct, 5)))
 
 hexes_3857 <-hexes %>%
   mutate(sf_geom = st_transform(sf_geom, crs = 3857))
