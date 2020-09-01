@@ -46,13 +46,18 @@ map <- get_stamenmap(bbox = bh_bbox, zoom = 15,
                      maptype="toner-2011")
 
 ggmap(map) +
-  geom_jitter(data = crime, aes(x=longitude, y=latitude), size=.2, color="blue") +
+  geom_jitter(data = crime,
+              aes(x=longitude, y=latitude, color=as.factor(category_d)), size=.2) +
   facet_wrap(~year, ncol = 6) +
   theme(axis.text = element_blank(),
         axis.title = element_blank(),
-        axis.ticks = element_blank())
+        axis.ticks = element_blank(),
+        legend.position = "bottom") +
+  labs(
+    color = "Category"
+  )
 
-ggsave("bh-crime.png", dpi=300, width=4, height=4)
+ggsave("bh-crime.png", dpi=300, width=5, height=4)
 
 # now bin per hex
 h3_res <- 9 # seems about right for Barton Hills
@@ -85,4 +90,4 @@ ggmap(map_3857) +
         axis.ticks = element_blank()) +
   scale_fill_brewer("Rank")
 
-ggsave("bh-crime-binned.png", dpi=300, width=4, height=4)
+ggsave("bh-crime-binned.png", dpi=300, width=5, height=4)
