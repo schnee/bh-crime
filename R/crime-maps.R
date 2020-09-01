@@ -82,14 +82,13 @@ map_3857 <- ggmap_bbox(map)
 
 ggmap(map_3857) +
   coord_sf(crs = st_crs(3857)) + # force the ggplot2 map to be in 3857
-  geom_sf(data = hexes_3857, aes(color=q,fill = q, geometry = sf_geom),
-          alpha = 0.5,
+  geom_sf(data = hexes_3857, aes(fill = q, geometry = sf_geom),
+          alpha = 0.5, color = "blue",
           inherit.aes = FALSE) +
   facet_wrap(~year, ncol = 6) +
   theme(axis.text = element_blank(),
         axis.title = element_blank(),
         axis.ticks = element_blank()) +
-  scale_fill_brewer("Rank") +
-  scale_color_brewer("Rank")
+  scale_fill_brewer("Rank")
 
 ggsave("bh-crime-binned.png", dpi=300, width=4, height=4)
